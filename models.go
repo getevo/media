@@ -6,24 +6,24 @@ import (
 )
 
 type Media struct {
-	MediaID        int64        `gorm:"column:media_id;primaryKey;autoIncrement" json:"media_id"`
-	ExternalID     string       `gorm:"column:external_id;size:64;index" json:"external_id"`
-	ExternalStatus string       `gorm:"column:state;size:64" json:"state"`
-	Title          string       `gorm:"column:title" json:"title"`
-	Filename       string       `gorm:"column:filename" json:"filename"`
-	Path           string       `gorm:"column:path" json:"path"`
-	Description    string       `gorm:"column:description" json:"description"`
-	Type           string       `gorm:"column:type;type:enum('image','audio','video','document')" json:"type"`
-	Mimetype       string       `gorm:"column:mimetype" json:"mimetype"`
-	Duration       int64        `gorm:"column:duration" json:"duration"`
-	ScreenSize     string       `gorm:"column:screen_size" json:"screen_size"`
-	AspectRatio    string       `gorm:"column:aspect_ratio;size:16" json:"aspect_ratio"`
-	FileSize       int64        `gorm:"column:file_size" json:"file_size"`
-	Status         string       `gorm:"column:status;type:enum('uploading','processing','ready','failed');index" json:"status"`
-	Progress       float64      `gorm:"column:progress" json:"progress"`
-	Error          string       `gorm:"column:error" json:"error"`
-	MetaData       []MetaData   `gorm:"foreignKey:MediaID;references:MediaID" json:"metadata"`
-	Collections    []Collection `gorm:"many2many:media_collection_items;joinTable:media_collection_items;foreignKey:CollectionID;references:CollectionID" json:""`
+	MediaID        int64      `gorm:"column:media_id;primaryKey;autoIncrement" json:"media_id"`
+	ExternalID     string     `gorm:"column:external_id;size:64;index" json:"external_id"`
+	ExternalStatus string     `gorm:"column:state;size:64" json:"state"`
+	Title          string     `gorm:"column:title" json:"title"`
+	Filename       string     `gorm:"column:filename" json:"filename"`
+	Path           string     `gorm:"column:path" json:"path"`
+	Description    string     `gorm:"column:description" json:"description"`
+	Type           string     `gorm:"column:type;type:enum('image','audio','video','document')" json:"type"`
+	Mimetype       string     `gorm:"column:mimetype" json:"mimetype"`
+	Duration       int64      `gorm:"column:duration" json:"duration"`
+	ScreenSize     string     `gorm:"column:screen_size" json:"screen_size"`
+	AspectRatio    string     `gorm:"column:aspect_ratio;size:16" json:"aspect_ratio"`
+	FileSize       int64      `gorm:"column:file_size" json:"file_size"`
+	Status         string     `gorm:"column:status;type:enum('uploading','processing','ready','failed');index" json:"status"`
+	Progress       float64    `gorm:"column:progress" json:"progress"`
+	Error          string     `gorm:"column:error" json:"error"`
+	MetaData       []MetaData `gorm:"foreignKey:MediaID;references:MediaID" json:"metadata"`
+	//Collections    []Collection `gorm:"many2many:media_collection_items;joinTable:media_collection_items;foreignKey:CollectionID;references:CollectionID" json:""`
 	types.CreatedAt
 	types.UpdatedAt
 	types.SoftDelete
