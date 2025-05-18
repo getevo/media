@@ -49,6 +49,9 @@ func (a App) Register() error {
 	_ = gpath.MakePath(LocalUploadDir)
 
 	OnUpload(func(media *Media) error {
+		if media.MediaID == 0 {
+			return nil
+		}
 		var metadata = ExtractMediaMetadata(media)
 		if len(metadata) > 0 {
 			db.Debug().Save(metadata)
