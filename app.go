@@ -54,7 +54,7 @@ func (a App) Register() error {
 		if err != nil {
 			log.Error(err)
 		} else {
-			db.Save(metadata)
+			db.Debug().Save(metadata)
 		}
 		return nil
 	})

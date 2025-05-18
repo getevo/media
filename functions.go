@@ -407,7 +407,7 @@ func ExtractMediaMetadata(media *Media) ([]MetaData, error) {
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
-
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("ffprobe failed: %w", err)
 	}
