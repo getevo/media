@@ -404,6 +404,12 @@ func ExtractMediaMetadata(media *Media) ([]MetaData, error) {
 		"-show_streams",
 		filepath.Join(LocalUploadDir, media.Path),
 	)
+	fmt.Println("ffprobe",
+		"-v", "quiet",
+		"-print_format", "json",
+		"-show_format",
+		"-show_streams",
+		filepath.Join(LocalUploadDir, media.Path))
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
