@@ -169,5 +169,5 @@ func getPath(mediaPath string) (string, error) {
 	if filepath.IsAbs(mediaPath) {
 		return mediaPath, nil
 	}
-	return filepath.Abs(filepath.Join(LocalUploadDir, mediaPath))
+	return filepath.Abs(mediaPath)
 }
