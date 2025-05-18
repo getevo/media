@@ -197,19 +197,18 @@ func (c Controller) MultipartUploadHandler(request *evo.Request) any {
 			media.Duration = int64(duration)
 		}
 
-		for _, callback := range mediaUploadedCallbacks {
-			err = callback(&media)
-			if err != nil {
-				return err
-			}
-		}
 		err = MoveFile(file, filepath.Join(LocalUploadDir, media.Path))
 		if err != nil {
 			return err
 		}
 		media.Status = READY
 		db.Save(&media)
-
+		for _, callback := range mediaUploadedCallbacks {
+			err = callback(&media)
+			if err != nil {
+				return err
+			}
+		}
 		return outcome.Response{
 			StatusCode: 200,
 		}
