@@ -147,7 +147,7 @@ func GenerateVideoThumbnail(media *Media) error {
 
 	cmd := exec.Command("ffmpeg",
 		"-y",
-		"-ss", fmt.Sprintf("%.2f", midpoint),
+		"-ss", fmt.Sprintf("%.2f", float64(midpoint)),
 		"-i", absInput,
 		"-vframes", "1",
 		"-q:v", "2", // High quality JPEG
