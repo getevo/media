@@ -139,7 +139,8 @@ func GenerateVideoThumbnail(media *Media) error {
 	if err != nil {
 		return fmt.Errorf("absolute output path error: %w", err)
 	}
-
+	fmt.Println("Generating thumbnail for:", absInput)
+	fmt.Println("Output thumbnail:", absOutput)
 	// Grab frame at middle of video
 	midpoint := media.Duration / 2.0
 

@@ -59,10 +59,10 @@ func (a App) Register() error {
 		}
 
 		if media.Type == "video" {
-			err := CreateVideoPreview(media)
-			log.Error(err)
+			/*	err := CreateVideoPreview(media)
+				log.Error(err)*/
 
-			err = GenerateVideoThumbnail(media)
+			err := GenerateVideoThumbnail(media)
 			log.Error(err)
 		}
 		return nil
