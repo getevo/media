@@ -79,7 +79,7 @@ func (c Controller) BasicUploadHandler(request *evo.Request) any {
 
 	media.Status = READY
 	media.Path = fmt.Sprint(time.Now().Unix())
-	var destination = path.Join(TemporaryDir, media.Path)
+	var destination = path.Join(LocalUploadDir, media.Path)
 	err = gpath.MakePath(destination)
 
 	if err != nil {
@@ -160,7 +160,7 @@ func (c Controller) MultipartUploadHandler(request *evo.Request) any {
 		if err != nil {
 			return err
 		}
-		fmt.Println("Completed upload for ", media.Path, " >", file)
+
 		fileType, err := DetectFileType(file)
 		if err != nil {
 			return err
@@ -197,20 +197,17 @@ func (c Controller) MultipartUploadHandler(request *evo.Request) any {
 			media.Duration = int64(duration)
 		}
 
-		err = db.Save(&media).Error
-		if err != nil {
-			return err
-		}
-
 		for _, callback := range mediaUploadedCallbacks {
 			err = callback(&media)
 			if err != nil {
 				return err
 			}
 		}
-
+		err = MoveFile(file, filepath.Join(LocalUploadDir, media.Path))
+		if err != nil {
+			return err
+		}
 		media.Status = READY
-
 		db.Save(&media)
 
 		return outcome.Response{

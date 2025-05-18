@@ -18,7 +18,6 @@ const (
 var TemporaryDir = ""
 var LocalUploadDir = ""
 var mediaUploadedCallbacks []func(media *Media) error
-var Storage StorageIFace
 
 type App struct{}
 

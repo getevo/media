@@ -20,6 +20,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"unicode"
 )
 
@@ -306,38 +307,48 @@ func OnUpload(fn func(media *Media) error) {
 	mediaUploadedCallbacks = append(mediaUploadedCallbacks, fn)
 }
 
-// MoveFile moves a file from src to dst, works across filesystems.
+// MoveFile moves a file from src to dst.
+// It tries os.Rename first, and falls back to copy+delete if needed (e.g., on cross-filesystem error).
 func MoveFile(src, dst string) error {
-	// Open source file
-	sourceFile, err := os.Open(src)
+	// Try fast rename
+	err := os.Rename(src, dst)
+	if err == nil {
+		return nil
+	}
+
+	// Check for cross-device error (EXDEV)
+	linkErr, ok := err.(*os.LinkError)
+	if !ok || linkErr.Err != syscall.EXDEV {
+		// Return immediately if it's not a cross-device move issue
+		return fmt.Errorf("failed to rename: %w", err)
+	}
+
+	// Fallback: copy + delete
+	srcFile, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %w", err)
 	}
-	defer sourceFile.Close()
+	defer srcFile.Close()
 
-	// Create destination file
-	destFile, err := os.Create(dst)
+	dstFile, err := os.Create(dst)
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %w", err)
 	}
-	defer destFile.Close()
+	defer dstFile.Close()
 
-	// Copy contents
-	_, err = io.Copy(destFile, sourceFile)
+	_, err = io.Copy(dstFile, srcFile)
 	if err != nil {
 		return fmt.Errorf("failed to copy file contents: %w", err)
 	}
 
-	// Get source file permissions
-	srcInfo, err := os.Stat(src)
-	if err == nil {
-		_ = os.Chmod(dst, srcInfo.Mode()) // Try to match permissions
+	// Preserve permissions
+	if stat, err := os.Stat(src); err == nil {
+		_ = os.Chmod(dst, stat.Mode())
 	}
 
-	// Delete original file
-	err = os.Remove(src)
-	if err != nil {
-		return fmt.Errorf("failed to delete source file: %w", err)
+	// Delete the original
+	if err := os.Remove(src); err != nil {
+		return fmt.Errorf("failed to remove source file: %w", err)
 	}
 
 	return nil
