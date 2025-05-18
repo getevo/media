@@ -32,22 +32,83 @@ func ExtractImageExif(media *Media) ([]MetaData, error) {
 		return nil, fmt.Errorf("failed to decode EXIF: %w", err)
 	}
 
-	// List of EXIF fields to extract
-	tags := []string{"Make", "Model", "DateTime", "Orientation"}
+	// Common EXIF tags to extract
+	tags := []string{
+		"Make", "Model", "Software", "LensModel",
+		"DateTime", "DateTimeOriginal", "SubSecTimeOriginal",
+		"ExposureTime", "FNumber", "ISOSpeedRatings",
+		"ShutterSpeedValue", "ApertureValue", "FocalLength",
+		"Orientation", "WhiteBalance", "Flash",
+		"PixelXDimension", "PixelYDimension",
+		"XResolution", "YResolution", "ResolutionUnit",
+	}
+
+	exifVals := make(map[string]string)
 
 	for _, tag := range tags {
 		if val, err := x.Get(exif.FieldName(tag)); err == nil {
 			if valStr, err := val.StringVal(); err == nil {
+				exifVals[tag] = valStr
 				metadata = append(metadata, MetaData{
 					MediaID: media.MediaID,
-					Key:     tag,
+					Key:     strings.ToLower(tag),
 					Value:   valStr,
 				})
 			}
 		}
 	}
 
-	// Optionally: extract GPS
+	// Width, height
+	widthStr := exifVals["PixelXDimension"]
+	heightStr := exifVals["PixelYDimension"]
+
+	if widthStr != "" && heightStr != "" {
+		metadata = append(metadata, MetaData{
+			MediaID: media.MediaID,
+			Key:     "width",
+			Value:   widthStr,
+		})
+		metadata = append(metadata, MetaData{
+			MediaID: media.MediaID,
+			Key:     "height",
+			Value:   heightStr,
+		})
+
+		// Aspect ratio
+		var width, height float64
+		fmt.Sscanf(widthStr, "%f", &width)
+		fmt.Sscanf(heightStr, "%f", &height)
+		if width > 0 && height > 0 {
+			aspect := width / height
+			metadata = append(metadata, MetaData{
+				MediaID: media.MediaID,
+				Key:     "aspect_ratio",
+				Value:   fmt.Sprintf("%.2f", aspect),
+			})
+		}
+	}
+
+	// DPI calculation
+	dpiX := exifVals["XResolution"]
+	dpiY := exifVals["YResolution"]
+	resUnit := strings.ToLower(exifVals["ResolutionUnit"]) // 2 = inches, 3 = cm
+
+	if dpiX != "" && resUnit == "2" {
+		metadata = append(metadata, MetaData{
+			MediaID: media.MediaID,
+			Key:     "dpi_x",
+			Value:   dpiX,
+		})
+	}
+	if dpiY != "" && resUnit == "2" {
+		metadata = append(metadata, MetaData{
+			MediaID: media.MediaID,
+			Key:     "dpi_y",
+			Value:   dpiY,
+		})
+	}
+
+	// GPS
 	if lat, long, err := x.LatLong(); err == nil {
 		metadata = append(metadata, MetaData{
 			MediaID: media.MediaID,
@@ -113,7 +174,7 @@ func ExtractAudioMetadata(media *Media) ([]MetaData, error) {
 			return metadata, fmt.Errorf("failed to save thumbnail: %w", err)
 		}
 
-		media.Thumbnail = thumbPath
+		media.Thumbnail = filepath.Join(filepath.Dir(media.Path), thumbName)
 		db.Save(media)
 	}
 
