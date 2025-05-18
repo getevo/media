@@ -60,9 +60,13 @@ func (a App) Register() error {
 
 		if media.Type == "video" {
 			err := CreateVideoPreview(media)
-			log.Error(err)
+			if err != nil {
+				log.Error(err)
+			}
 			err = GenerateVideoThumbnail(media)
-			log.Error(err)
+			if err != nil {
+				log.Error(err)
+			}
 			db.Save(media)
 		}
 		return nil

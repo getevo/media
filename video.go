@@ -131,7 +131,6 @@ func runCmd(cmd *exec.Cmd) error {
 // GenerateVideoThumbnail generates a 720p JPG thumbnail from the midpoint of the video.
 // Returns the absolute thumbnail path.
 func GenerateVideoThumbnail(media *Media) error {
-	fmt.Println(media.Path)
 	absInput, err := getPath(filepath.Join(LocalUploadDir, media.Path))
 	if err != nil {
 		return fmt.Errorf("absolute input path error: %w", err)
@@ -140,8 +139,7 @@ func GenerateVideoThumbnail(media *Media) error {
 	if err != nil {
 		return fmt.Errorf("absolute output path error: %w", err)
 	}
-	fmt.Println("Generating thumbnail for:", absInput)
-	fmt.Println("Output thumbnail:", absOutput)
+
 	// Grab frame at middle of video
 	midpoint := media.Duration / 2.0
 
