@@ -160,7 +160,7 @@ func (c Controller) MultipartUploadHandler(request *evo.Request) any {
 		if err != nil {
 			return err
 		}
-
+		fmt.Println("Completed upload for ", media.Path, " >", file)
 		fileType, err := DetectFileType(file)
 		if err != nil {
 			return err
