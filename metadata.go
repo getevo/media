@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -188,9 +189,8 @@ func ExtractVideoMetadata(media *Media) ([]MetaData, error) {
 	if err != nil {
 		return nil, fmt.Errorf("absolute path error: %w", err)
 	}
-	media.Path = absPath
 
-	if _, err := os.Stat(media.Path); err != nil {
+	if _, err := os.Stat(absPath); err != nil {
 		return nil, fmt.Errorf("file does not exist: %w", err)
 	}
 
@@ -199,7 +199,7 @@ func ExtractVideoMetadata(media *Media) ([]MetaData, error) {
 		"-print_format", "json",
 		"-show_format",
 		"-show_streams",
-		media.Path,
+		absPath,
 	)
 
 	var out, stderr bytes.Buffer
@@ -244,17 +244,23 @@ func ExtractVideoMetadata(media *Media) ([]MetaData, error) {
 		switch stream.CodecType {
 		case "video":
 			if stream.Width > 0 && stream.Height > 0 {
-				res := fmt.Sprintf("%dx%d", stream.Width, stream.Height)
-				metadata = append(metadata, MetaData{MediaID: media.MediaID, Key: "resolution", Value: res})
-
-				aspectRatio := fmt.Sprintf("%.2f", float64(stream.Width)/float64(stream.Height))
-				metadata = append(metadata, MetaData{MediaID: media.MediaID, Key: "aspect_ratio", Value: aspectRatio})
+				var aspectRatio = float64(stream.Width) / float64(stream.Height)
+				closestName := closestAspectRatio(aspectRatio)
+				metadata = append(metadata, MetaData{MediaID: media.MediaID, Key: "aspect_ratio", Value: closestName})
 			}
 			if stream.CodecName != "" {
 				metadata = append(metadata, MetaData{MediaID: media.MediaID, Key: "codec", Value: stream.CodecName})
 			}
 			if stream.RFrameRate != "" {
-				metadata = append(metadata, MetaData{MediaID: media.MediaID, Key: "frame_rate", Value: stream.RFrameRate})
+				fpsParts := strings.Split(stream.RFrameRate, "/")
+				if len(fpsParts) == 2 {
+					num, err1 := strconv.ParseFloat(fpsParts[0], 64)
+					den, err2 := strconv.ParseFloat(fpsParts[1], 64)
+					if err1 == nil && err2 == nil && den != 0 {
+						fps := num / den
+						metadata = append(metadata, MetaData{MediaID: media.MediaID, Key: "frame_rate", Value: fmt.Sprintf("%.2f fps", fps)})
+					}
+				}
 			}
 
 		case "audio":
