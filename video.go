@@ -36,19 +36,20 @@ func CreateVideoPreview(media *Media) error {
 		return ffmpegExtract(absInput, absOutput, 0, 10)
 	}
 
-	// Complex case: Split and process
+	// Complex case: Split and process (skip first 1/5th)
 	partDuration := duration / 5.0
 	var wg sync.WaitGroup
-	var errs = make([]error, 4)
+	var errs = make([]error, 4) // Using 4 parts (pieces 1 to 4)
 
-	for i := 1; i < 5; i++ {
+	for i := 1; i <= 4; i++ {
+		index := i - 1
 		start := partDuration * float64(i)
 		out := filepath.Join(tmpDir, fmt.Sprintf("part%d.mp4", i))
 		wg.Add(1)
-		go func(i int, start float64, out string) {
+		go func(index int, start float64, out string) {
 			defer wg.Done()
-			errs[i] = ffmpegExtract(absInput, out, start, 2.5)
-		}(i, start, out)
+			errs[index] = ffmpegExtract(absInput, out, start, 2.5)
+		}(index, start, out)
 	}
 	wg.Wait()
 
@@ -59,10 +60,10 @@ func CreateVideoPreview(media *Media) error {
 	}
 
 	// Create concat list
-	var random = text.Random(5)
+	random := text.Random(5)
 	concatFile := filepath.Join(tmpDir, "concat-"+random+".txt")
 	var concatList strings.Builder
-	for i := 0; i < 4; i++ {
+	for i := 1; i <= 4; i++ {
 		concatList.WriteString(fmt.Sprintf("file '%s'\n", filepath.Join(tmpDir, fmt.Sprintf("part%d.mp4", i))))
 	}
 	if err := os.WriteFile(concatFile, []byte(concatList.String()), 0644); err != nil {
@@ -70,18 +71,20 @@ func CreateVideoPreview(media *Media) error {
 	}
 
 	// Final concat
+	combined := filepath.Join(tmpDir, "combined.mp4")
 	cmd := exec.Command("ffmpeg",
 		"-y", "-f", "concat", "-safe", "0",
 		"-i", concatFile,
 		"-c", "copy",
-		filepath.Join(tmpDir, "combined.mp4"),
+		combined,
 	)
 	if err := runCmd(cmd); err != nil {
 		return fmt.Errorf("failed to concat: %w", err)
 	}
 	defer os.Remove(concatFile)
+
 	// Resize + remove audio from combined
-	err = ffmpegFinalize(filepath.Join(tmpDir, "combined.mp4"), absOutput)
+	err = ffmpegFinalize(combined, absOutput)
 	if err != nil {
 		return fmt.Errorf("failed to finalize combined: %w", err)
 	}
