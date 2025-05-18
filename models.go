@@ -38,8 +38,8 @@ func (Media) TableName() string {
 
 type Collection struct {
 	CollectionID int64  `gorm:"column:collection_id;primaryKey;autoIncrement" json:"collection_id"`
-	Title        string `gorm:"column:title" json:"title"`
-	Description  string `gorm:"column:description" json:"description"`
+	Title        string `gorm:"column:title;size:255" json:"title"`
+	Description  string `gorm:"column:description;size:512" json:"description"`
 	types.CreatedAt
 	types.UpdatedAt
 	types.SoftDelete
@@ -52,7 +52,7 @@ func (Collection) TableName() string {
 
 type CollectionItems struct {
 	CollectionID int64  `gorm:"column:collection_id;index;fk:media_collection" json:"collection_id"`
-	MediaID      int64  `gorm:"column:media_id;index;fk:media_collection" json:"media_id"`
+	MediaID      int64  `gorm:"column:media_id;index;fk:media" json:"media_id"`
 	VisualOrder  int    `gorm:"column:visual_order" json:"visual_order"`
 	Media        *Media `gorm:"foreignKey:MediaID;references:MediaID" json:"media,omitempty"`
 	restify.API
