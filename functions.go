@@ -149,6 +149,12 @@ func DetectFileType(input interface{}) (FileInfo, error) {
 	var err error
 
 	switch v := input.(type) {
+	case string:
+		file, err = os.Open(v)
+		if err != nil {
+			return FileInfo{}, fmt.Errorf("failed to open file: %w", err)
+		}
+	case multipart.File:
 	case *multipart.FileHeader:
 		file, err = v.Open()
 		if err != nil {

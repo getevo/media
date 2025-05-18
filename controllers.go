@@ -273,6 +273,7 @@ func (c Controller) MultipartUploadChunkHandler(request *evo.Request) any {
 	counter++
 	return outcome.Response{
 		StatusCode: 200,
+		Data:       "",
 		Headers: map[string]string{
 			"Etag": fmt.Sprintf("%d%d", time.Now().UnixNano(), counter),
 		},
