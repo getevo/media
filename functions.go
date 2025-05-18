@@ -392,3 +392,70 @@ func MoveFile(src, dst string) error {
 
 	return nil
 }
+
+// ExtractMediaMetadata extracts media metadata using ffprobe
+func ExtractMediaMetadata(media *Media) ([]MetaData, error) {
+	var metadata []MetaData
+
+	cmd := exec.Command("ffprobe",
+		"-v", "quiet",
+		"-print_format", "json",
+		"-show_format",
+		"-show_streams",
+		filepath.Join(LocalUploadDir, media.Path),
+	)
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("ffprobe failed: %w", err)
+	}
+
+	var ffprobeResult map[string]interface{}
+	if err := json.Unmarshal(out.Bytes(), &ffprobeResult); err != nil {
+		return nil, fmt.Errorf("invalid ffprobe output: %w", err)
+	}
+
+	// Extract format-level tags
+	if format, ok := ffprobeResult["format"].(map[string]interface{}); ok {
+		if tags, ok := format["tags"].(map[string]interface{}); ok {
+			for key, val := range tags {
+				metadata = append(metadata, MetaData{
+					MediaID: media.MediaID,
+					Key:     strings.ToLower(key),
+					Value:   fmt.Sprintf("%v", val),
+				})
+			}
+		}
+	}
+
+	// Extract resolution for video/image
+	if streams, ok := ffprobeResult["streams"].([]interface{}); ok {
+		for _, stream := range streams {
+			if streamMap, ok := stream.(map[string]interface{}); ok {
+				if codecType, ok := streamMap["codec_type"].(string); ok {
+					switch codecType {
+					case "video":
+						if width, ok := streamMap["width"]; ok {
+							metadata = append(metadata, MetaData{
+								MediaID: media.MediaID,
+								Key:     "width",
+								Value:   fmt.Sprintf("%v", width),
+							})
+						}
+						if height, ok := streamMap["height"]; ok {
+							metadata = append(metadata, MetaData{
+								MediaID: media.MediaID,
+								Key:     "height",
+								Value:   fmt.Sprintf("%v", height),
+							})
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return metadata, nil
+}

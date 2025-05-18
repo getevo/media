@@ -5,6 +5,7 @@ import (
 	"github.com/getevo/evo/v2"
 	"github.com/getevo/evo/v2/lib/db"
 	"github.com/getevo/evo/v2/lib/gpath"
+	"github.com/getevo/evo/v2/lib/log"
 	"github.com/getevo/evo/v2/lib/settings"
 )
 
@@ -47,6 +48,17 @@ func (a App) Register() error {
 
 	_ = gpath.MakePath(TemporaryDir)
 	_ = gpath.MakePath(LocalUploadDir)
+
+	OnUpload(func(media *Media) error {
+		metadata, err := ExtractMediaMetadata(media)
+		if err != nil {
+			log.Error(err)
+		} else {
+			db.Save(metadata)
+		}
+		return nil
+	})
+
 	return nil
 }
 

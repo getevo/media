@@ -61,10 +61,9 @@ func (CollectionItems) TableName() string {
 }
 
 type MetaData struct {
-	MetaDataID int64  `gorm:"column:meta_data_id;primaryKey;autoIncrement" json:"meta_data_id"`
-	MediaID    int64  `gorm:"column:media_id;index;fk:media" json:"media_id"`
-	Key        string `gorm:"column:key;size:64;index" json:"key"`
-	Value      string `gorm:"column:value;index" json:"value"`
+	MediaID int64  `gorm:"column:media_id;index;fk:media;primaryKey" json:"media_id"`
+	Key     string `gorm:"column:key;size:64;index;primaryKey" json:"key"`
+	Value   string `gorm:"column:value;index" json:"value"`
 	restify.API
 }
 
