@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/dhowden/tag"
+	"github.com/getevo/evo/v2/lib/db"
 	"github.com/getevo/evo/v2/lib/json"
 	"github.com/rwcarlsen/goexif/exif"
 	"os"
@@ -113,6 +114,7 @@ func ExtractAudioMetadata(media *Media) ([]MetaData, error) {
 		}
 
 		media.Thumbnail = thumbPath
+		db.Save(media)
 	}
 
 	return metadata, nil
