@@ -35,6 +35,7 @@ type Part struct {
 type FileInfo struct {
 	Type     string // one of: image, video, audio, document
 	MIMEType string
+	FileSize int64
 }
 
 type VideoInfo struct {

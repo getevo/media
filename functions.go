@@ -147,23 +147,54 @@ func NormalizeFileName(input string) string {
 
 // DetectFileType detects file category and MIME type from either *multipart.FileHeader or *os.File
 func DetectFileType(input interface{}) (FileInfo, error) {
-	var file multipart.File
-	var err error
+	var (
+		file     multipart.File
+		size     int64
+		err      error
+		fileInfo os.FileInfo
+	)
 
 	switch v := input.(type) {
 	case string:
-		file, err = os.Open(v)
+		var f *os.File
+		f, err = os.Open(v)
 		if err != nil {
 			return FileInfo{}, fmt.Errorf("failed to open file: %w", err)
 		}
-	case multipart.File:
+		file = f
+		fileInfo, err = f.Stat()
+		if err != nil {
+			f.Close()
+			return FileInfo{}, fmt.Errorf("failed to stat file: %w", err)
+		}
+		size = fileInfo.Size()
+
+	case *os.File:
+		file = v
+		fileInfo, err = v.Stat()
+		if err != nil {
+			return FileInfo{}, fmt.Errorf("failed to stat file: %w", err)
+		}
+		size = fileInfo.Size()
+
 	case *multipart.FileHeader:
+		size = v.Size
 		file, err = v.Open()
 		if err != nil {
 			return FileInfo{}, fmt.Errorf("failed to open multipart file: %w", err)
 		}
-	case *os.File:
+
+	case multipart.File:
 		file = v
+		// Try to get the size by checking if it's an *os.File
+		if f, ok := v.(*os.File); ok {
+			fileInfo, err = f.Stat()
+			if err == nil {
+				size = fileInfo.Size()
+			}
+		}
+		// If not possible, size will be 0
+
 	default:
 		return FileInfo{}, fmt.Errorf("unsupported file type: %T", input)
 	}
@@ -171,7 +202,7 @@ func DetectFileType(input interface{}) (FileInfo, error) {
 
 	buffer := make([]byte, 512)
 	n, err := file.Read(buffer)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return FileInfo{}, fmt.Errorf("failed to read file: %w", err)
 	}
 
@@ -189,6 +220,7 @@ func DetectFileType(input interface{}) (FileInfo, error) {
 	return FileInfo{
 		Type:     fileType,
 		MIMEType: mimeType,
+		FileSize: size,
 	}, nil
 }
 
