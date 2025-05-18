@@ -3,9 +3,11 @@ module github.com/getevo/media
 go 1.23.9
 
 require (
+	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8
 	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/getevo/evo/v2 v2.0.0-20250507085905-7ae1a37a4236
 	github.com/getevo/restify v0.0.0-20250513125431-662da833b4b2
+	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 )
 
 require (

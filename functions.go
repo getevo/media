@@ -5,12 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/getevo/evo/v2"
 	"github.com/getevo/evo/v2/lib/json"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
+	"log"
 	"math"
 	"mime/multipart"
 	"net/textproto"
@@ -394,74 +396,23 @@ func MoveFile(src, dst string) error {
 }
 
 // ExtractMediaMetadata extracts media metadata using ffprobe
-func ExtractMediaMetadata(media *Media) ([]MetaData, error) {
+func ExtractMediaMetadata(media *Media) []MetaData {
 	var metadata []MetaData
-	var filePath, _ = filepath.Abs(filepath.Join(LocalUploadDir, media.Path))
-	cmd := exec.Command("ffprobe",
-		"-v", "quiet",
-		"-print_format", "json",
-		"-show_format",
-		"-show_streams",
-		filePath,
-	)
-	fmt.Println("ffprobe",
-		"-v", "quiet",
-		"-print_format", "json",
-		"-show_format",
-		"-show_streams",
-		filePath)
-
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("ffprobe failed: %w", err)
+	var err error
+	evo.Dump(media)
+	switch media.Type {
+	case "video":
+		metadata, err = ExtractVideoMetadata(media)
+	case "image":
+		metadata, err = ExtractImageExif(media)
+	case "audio":
+		metadata, err = ExtractAudioMetadata(media)
+	default:
+		return nil
 	}
-
-	var ffprobeResult map[string]interface{}
-	if err := json.Unmarshal(out.Bytes(), &ffprobeResult); err != nil {
-		return nil, fmt.Errorf("invalid ffprobe output: %w", err)
+	if err != nil {
+		log.Printf("Error extracting metadata for %s: %v", media.Path, err)
+		return nil
 	}
-
-	// Extract format-level tags
-	if format, ok := ffprobeResult["format"].(map[string]interface{}); ok {
-		if tags, ok := format["tags"].(map[string]interface{}); ok {
-			for key, val := range tags {
-				metadata = append(metadata, MetaData{
-					MediaID: media.MediaID,
-					Key:     strings.ToLower(key),
-					Value:   fmt.Sprintf("%v", val),
-				})
-			}
-		}
-	}
-
-	// Extract resolution for video/image
-	if streams, ok := ffprobeResult["streams"].([]interface{}); ok {
-		for _, stream := range streams {
-			if streamMap, ok := stream.(map[string]interface{}); ok {
-				if codecType, ok := streamMap["codec_type"].(string); ok {
-					switch codecType {
-					case "video":
-						if width, ok := streamMap["width"]; ok {
-							metadata = append(metadata, MetaData{
-								MediaID: media.MediaID,
-								Key:     "width",
-								Value:   fmt.Sprintf("%v", width),
-							})
-						}
-						if height, ok := streamMap["height"]; ok {
-							metadata = append(metadata, MetaData{
-								MediaID: media.MediaID,
-								Key:     "height",
-								Value:   fmt.Sprintf("%v", height),
-							})
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return metadata, nil
+	return metadata
 }
