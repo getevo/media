@@ -16,6 +16,7 @@ import (
 	"net/textproto"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -310,6 +311,12 @@ func OnUpload(fn func(media *Media) error) {
 // MoveFile moves a file from src to dst.
 // It tries os.Rename first, and falls back to copy+delete if needed (e.g., on cross-filesystem error).
 func MoveFile(src, dst string) error {
+	// Ensure destination directory exists
+	dstDir := filepath.Dir(dst)
+	if err := os.MkdirAll(dstDir, 0755); err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
 	// Try fast rename
 	err := os.Rename(src, dst)
 	if err == nil {
@@ -347,7 +354,7 @@ func MoveFile(src, dst string) error {
 	}
 
 	// Delete the original
-	if err := os.Remove(src); err != nil {
+	if err = os.Remove(src); err != nil {
 		return fmt.Errorf("failed to remove source file: %w", err)
 	}
 
