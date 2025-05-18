@@ -127,7 +127,10 @@ func (c Controller) BasicUploadHandler(request *evo.Request) any {
 		}
 	}
 	for _, callback := range mediaUploadedCallbacks {
-		callback(&media)
+		err = callback(&media)
+		if err != nil {
+			return err
+		}
 	}
 
 	return media
@@ -138,6 +141,8 @@ func (c Controller) MultipartUploadHandler(request *evo.Request) any {
 	var key = request.Param("*").String()
 	key = NormalizeFileName(key)
 	var uploadID = request.Query("uploadId").String()
+
+	// Upload completed
 	if uploadID != "" {
 		var data CompleteMultipartUpload
 		err := request.BodyParser(&data)
@@ -151,19 +156,60 @@ func (c Controller) MultipartUploadHandler(request *evo.Request) any {
 			return errors.New("invalid upload ID")
 		}
 
-		err = c.AssembleUpload(key, uploadID, data)
+		err, file := c.AssembleUpload(key, uploadID, data)
 		if err != nil {
 			return err
 		}
+
+		fileType, err := DetectFileType(file)
+		if err != nil {
+			return err
+		}
+		media.Mimetype = fileType.MIMEType
+		media.Type = fileType.Type
 		media.Status = PROCESSING
 		media.Path = filepath.Join(uploadID, key)
-		err = db.Save(&media).Error
 
-		media.Status = READY
-		/*	err = os.Remove(filepath.Join(TemporaryDir, "assembled", key))
+		switch fileType.Type {
+		case "video":
+			var info, err = GetVideoInfo(file)
 			if err != nil {
 				log.Error(err)
-			}*/
+				return err
+			}
+			media.Duration = int64(info.Duration)
+			media.ScreenSize = fmt.Sprintf("%dx%d", info.Width, info.Height)
+			media.AspectRatio = info.AspectRatio
+		case "image":
+			var info, err = GetImageInfo(file)
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+			media.ScreenSize = fmt.Sprintf("%dx%d", info.Width, info.Height)
+			media.AspectRatio = info.AspectRatio
+		case "audio":
+			var duration, err = GetAudioDuration(file)
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+			media.Duration = int64(duration)
+		}
+
+		err = db.Save(&media).Error
+		if err != nil {
+			return err
+		}
+
+		for _, callback := range mediaUploadedCallbacks {
+			err = callback(&media)
+			if err != nil {
+				return err
+			}
+		}
+
+		media.Status = READY
 
 		db.Save(&media)
 
@@ -233,12 +279,13 @@ func (c Controller) MultipartUploadChunkHandler(request *evo.Request) any {
 	}
 }
 
-func (c Controller) AssembleUpload(key string, uploadID string, data CompleteMultipartUpload) error {
+func (c Controller) AssembleUpload(key string, uploadID string, data CompleteMultipartUpload) (error, string) {
 	var p = filepath.Join(TemporaryDir, key, uploadID)
 	_ = gpath.MakePath(filepath.Join(TemporaryDir, "assembled"))
-	out, err := os.Create(filepath.Join(TemporaryDir, "assembled", key))
+	var filePath = filepath.Join(TemporaryDir, "assembled", key)
+	out, err := os.Create(filePath)
 	if err != nil {
-		return err
+		return err, filePath
 	}
 	defer out.Close()
 
@@ -246,13 +293,13 @@ func (c Controller) AssembleUpload(key string, uploadID string, data CompleteMul
 		partPath := p + "/" + fmt.Sprintf("%d", i)
 		in, err := os.Open(partPath)
 		if err != nil {
-			return err
+			return err, filePath
 		}
 		defer in.Close()
 
 		_, err = io.Copy(out, in)
 		if err != nil {
-			return err
+			return err, filePath
 		}
 	}
 
@@ -261,5 +308,5 @@ func (c Controller) AssembleUpload(key string, uploadID string, data CompleteMul
 		_ = gpath.Remove(filepath.Dir(p))
 	}()
 
-	return nil
+	return nil, filePath
 }

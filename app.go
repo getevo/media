@@ -17,7 +17,7 @@ const (
 
 var TemporaryDir = ""
 var LocalUploadDir = ""
-var mediaUploadedCallbacks []func(media *Media)
+var mediaUploadedCallbacks []func(media *Media) error
 var Storage StorageIFace
 
 type App struct{}
@@ -58,7 +58,7 @@ func (a App) Router() error {
 	admin.Post("/multipart/upload/*", controller.MultipartUploadHandler)
 	admin.Delete("/multipart/upload/*", controller.MultipartCleanUploadHandler)
 	admin.Put("/multipart/upload/*", controller.MultipartUploadChunkHandler)
-
+	evo.Static("/upload", "./media/static")
 	return nil
 }
 

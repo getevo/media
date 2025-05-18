@@ -1,0 +1,63 @@
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Evaporate.js Chunk Upload</title>
+    <script src="https://unpkg.com/evaporate"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+<input type="text" id="authorization" placeholder="Authorization header" />
+<h1>Select a File to Upload</h1>
+<input type="file" id="fileInput" />
+<input type="text" id="description" placeholder="File description" value="My File Description"/>
+<input type="text" id="title" placeholder="File title" value="My File Title"/>
+
+<script>
+    document.getElementById('fileInput').addEventListener('change', async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const evaporate = await Evaporate.create({
+            aws_url: '/admin/media/multipart',
+            aws_key: 'fake-key',
+            bucket: 'upload',
+            computeContentMd5: true,
+            cryptoMd5Method: data => Promise.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(data)).toString(CryptoJS.enc.Base64)),
+            cryptoHexEncodedHash256: data => Promise.resolve(CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex)),
+            partSize: 5 * 1024 * 1024,
+            logging: true,
+            customAuthMethod: function() {
+                return Promise.resolve('');
+            }
+        });
+
+        evaporate.add({
+            name: file.name,
+            file: file,
+            xAmzHeadersAtInitiate: {
+                'X-File-Description': document.getElementById("description").value,
+                'X-File-Title': document.getElementById("title").value,
+                "X-File-Type":"video",
+                "X-File-Mimetype":"video/mp4",
+                "X-File-AspectRatio":"16:9",
+                "X-File-FileSize":"150000",
+                "X-File-ScreenSize":"1024x768",
+                "X-File-Duration":"600",
+                'X-Authorization': document.getElementById('authorization').value,
+            },
+            xAmzHeadersAtUpload: {
+                'X-Authorization': document.getElementById('authorization').value,
+            },
+            xAmzHeadersAtComplete: {
+                'X-Authorization': document.getElementById('authorization').value,
+            },
+            complete: function (_xhr,key) {
+                alert("file:"+key+" uploaded")
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -143,15 +143,24 @@ func NormalizeFileName(input string) string {
 	return result
 }
 
-// DetectFileType detects file category and MIME type from *multipart.FileHeader
-func DetectFileType(fileHeader *multipart.FileHeader) (FileInfo, error) {
-	file, err := fileHeader.Open()
-	if err != nil {
-		return FileInfo{}, fmt.Errorf("failed to open file: %w", err)
+// DetectFileType detects file category and MIME type from either *multipart.FileHeader or *os.File
+func DetectFileType(input interface{}) (FileInfo, error) {
+	var file multipart.File
+	var err error
+
+	switch v := input.(type) {
+	case *multipart.FileHeader:
+		file, err = v.Open()
+		if err != nil {
+			return FileInfo{}, fmt.Errorf("failed to open multipart file: %w", err)
+		}
+	case *os.File:
+		file = v
+	default:
+		return FileInfo{}, fmt.Errorf("unsupported file type: %T", input)
 	}
 	defer file.Close()
 
-	// Read the first 512 bytes for MIME type detection
 	buffer := make([]byte, 512)
 	n, err := file.Read(buffer)
 	if err != nil {
@@ -159,8 +168,7 @@ func DetectFileType(fileHeader *multipart.FileHeader) (FileInfo, error) {
 	}
 
 	mimeType := mimetype.Detect(buffer[:n]).String()
-
-	fileType := "document" // default fallback
+	fileType := "document"
 	switch {
 	case strings.HasPrefix(mimeType, "image/"):
 		fileType = "image"
@@ -288,6 +296,43 @@ func GetAudioDuration(filePath string) (float64, error) {
 	return duration, nil
 }
 
-func OnUpload(fn func(media *Media)) {
+func OnUpload(fn func(media *Media) error) {
 	mediaUploadedCallbacks = append(mediaUploadedCallbacks, fn)
+}
+
+// MoveFile moves a file from src to dst, works across filesystems.
+func MoveFile(src, dst string) error {
+	// Open source file
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer sourceFile.Close()
+
+	// Create destination file
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+	defer destFile.Close()
+
+	// Copy contents
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy file contents: %w", err)
+	}
+
+	// Get source file permissions
+	srcInfo, err := os.Stat(src)
+	if err == nil {
+		_ = os.Chmod(dst, srcInfo.Mode()) // Try to match permissions
+	}
+
+	// Delete original file
+	err = os.Remove(src)
+	if err != nil {
+		return fmt.Errorf("failed to delete source file: %w", err)
+	}
+
+	return nil
 }
