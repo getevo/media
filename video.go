@@ -37,11 +37,11 @@ func CreateVideoPreview(media *Media) error {
 	}
 
 	// Complex case: Split and process
-	partDuration := duration / 4.0
+	partDuration := duration / 5.0
 	var wg sync.WaitGroup
 	var errs = make([]error, 4)
 
-	for i := 0; i < 4; i++ {
+	for i := 1; i < 5; i++ {
 		start := partDuration * float64(i)
 		out := filepath.Join(tmpDir, fmt.Sprintf("part%d.mp4", i))
 		wg.Add(1)
