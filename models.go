@@ -13,6 +13,7 @@ type Media struct {
 	Filename       string     `gorm:"column:filename" json:"filename"`
 	Path           string     `gorm:"column:path" json:"path"`
 	Description    string     `gorm:"column:description" json:"description"`
+	Thumbnail      string     `gorm:"column:thumbnail" json:"thumbnail"`
 	Type           string     `gorm:"column:type;type:enum('image','audio','video','document')" json:"type"`
 	Mimetype       string     `gorm:"column:mimetype" json:"mimetype"`
 	Duration       int64      `gorm:"column:duration" json:"duration"`

@@ -2,8 +2,11 @@ package media
 
 type StorageIFace interface {
 	Initialize() error
-	Put(src string, dst string) error
-	Delete(dst string) error
-	Get(dst string, src string) error
+	PutFile(src string, dst string) error
+	DeleteFile(dst string) error
+	FetchFile(dst string, src string) error
+	PutDir(src string, dst string) error
+	DeleteDir(dst string) error
+	FetchDir(dst string, src string) error
 	List(dir string, recursive bool) ([]string, error)
 }
