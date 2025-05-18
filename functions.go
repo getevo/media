@@ -212,7 +212,9 @@ func GetVideoInfo(inputPath string) (*VideoInfo, error) {
 
 	width := probeOutput.Streams[0].Width
 	height := probeOutput.Streams[0].Height
-	aspectRatio := probeOutput.Streams[0].DisplayAspectRatio
+
+	aspect := float64(width) / float64(height)
+	closestName := closestAspectRatio(aspect)
 
 	duration, err := strconv.ParseFloat(probeOutput.Format.Duration, 64)
 	if err != nil {
@@ -222,7 +224,7 @@ func GetVideoInfo(inputPath string) (*VideoInfo, error) {
 	return &VideoInfo{
 		Width:       width,
 		Height:      height,
-		AspectRatio: aspectRatio,
+		AspectRatio: closestName,
 		Duration:    duration,
 	}, nil
 }
