@@ -12,11 +12,11 @@ import (
 )
 
 func CreateVideoPreview(media *Media) error {
-	absInput, err := filepath.Abs(filepath.Join(LocalUploadDir, media.Path))
+	absInput, err := getPath(filepath.Join(LocalUploadDir, media.Path))
 	if err != nil {
 		return fmt.Errorf("absolute input path error: %w", err)
 	}
-	absOutput, err := filepath.Abs(filepath.Join(LocalUploadDir, filepath.Dir(media.Path), "preview.mp4"))
+	absOutput, err := getPath(filepath.Join(LocalUploadDir, filepath.Dir(media.Path), "preview.mp4"))
 	if err != nil {
 		return fmt.Errorf("absolute output path error: %w", err)
 	}
@@ -131,11 +131,11 @@ func runCmd(cmd *exec.Cmd) error {
 // GenerateVideoThumbnail generates a 720p JPG thumbnail from the midpoint of the video.
 // Returns the absolute thumbnail path.
 func GenerateVideoThumbnail(media *Media) error {
-	absInput, err := filepath.Abs(filepath.Join(LocalUploadDir, media.Path))
+	absInput, err := getPath(filepath.Join(LocalUploadDir, media.Path))
 	if err != nil {
 		return fmt.Errorf("absolute input path error: %w", err)
 	}
-	absOutput, err := filepath.Abs(filepath.Join(LocalUploadDir, filepath.Dir(media.Path), "preview.jpg"))
+	absOutput, err := getPath(filepath.Join(LocalUploadDir, filepath.Dir(media.Path), "preview.jpg"))
 	if err != nil {
 		return fmt.Errorf("absolute output path error: %w", err)
 	}
@@ -163,4 +163,11 @@ func GenerateVideoThumbnail(media *Media) error {
 	}
 	media.Thumbnail = filepath.Join(filepath.Dir(media.Path), "preview.jpg")
 	return nil
+}
+
+func getPath(mediaPath string) (string, error) {
+	if filepath.IsAbs(mediaPath) {
+		return mediaPath, nil
+	}
+	return filepath.Abs(filepath.Join(LocalUploadDir, mediaPath))
 }

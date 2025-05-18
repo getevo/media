@@ -16,7 +16,7 @@ import (
 func ExtractImageExif(media *Media) ([]MetaData, error) {
 	var metadata []MetaData
 
-	absPath, err := filepath.Abs(filepath.Join(LocalUploadDir, media.Path))
+	absPath, err := getPath(filepath.Join(LocalUploadDir, media.Path))
 	if err != nil {
 		return nil, fmt.Errorf("absolute path error: %w", err)
 	}
@@ -126,7 +126,7 @@ func ExtractImageExif(media *Media) ([]MetaData, error) {
 }
 func ExtractAudioMetadata(media *Media) ([]MetaData, error) {
 	var metadata []MetaData
-	absPath, err := filepath.Abs(filepath.Join(LocalUploadDir, media.Path))
+	absPath, err := getPath(filepath.Join(LocalUploadDir, media.Path))
 	if err != nil {
 		return nil, fmt.Errorf("absolute path error: %w", err)
 	}
@@ -184,7 +184,7 @@ func ExtractAudioMetadata(media *Media) ([]MetaData, error) {
 func ExtractVideoMetadata(media *Media) ([]MetaData, error) {
 	var metadata []MetaData
 
-	absPath, err := filepath.Abs(filepath.Join(LocalUploadDir, media.Path))
+	absPath, err := getPath(filepath.Join(LocalUploadDir, media.Path))
 	if err != nil {
 		return nil, fmt.Errorf("absolute path error: %w", err)
 	}
