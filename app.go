@@ -5,6 +5,7 @@ import (
 	"github.com/getevo/evo/v2"
 	"github.com/getevo/evo/v2/lib/db"
 	"github.com/getevo/evo/v2/lib/gpath"
+	"github.com/getevo/evo/v2/lib/log"
 	"github.com/getevo/evo/v2/lib/settings"
 )
 
@@ -55,6 +56,14 @@ func (a App) Register() error {
 		var metadata = ExtractMediaMetadata(media)
 		if len(metadata) > 0 {
 			db.Debug().Save(metadata)
+		}
+
+		if media.Type == "video" {
+			err := CreateVideoPreview(media)
+			log.Error(err)
+
+			err = GenerateVideoThumbnail(media)
+			log.Error(err)
 		}
 		return nil
 	})
