@@ -24,10 +24,10 @@ type App struct{}
 
 func (a App) Register() error {
 	db.UseModel(Media{}, Collection{}, CollectionItems{}, MetaData{})
-	var err = db.SetupJoinTable(&Media{}, "Collections", &CollectionItems{})
-	if err != nil {
-		return err
-	}
+	/*	var err = db.SetupJoinTable(&Media{}, "Collections", &CollectionItems{})
+		if err != nil {
+			return err
+		}*/
 	// check ffmpeg installed
 	if !IsFFMpegInstalled() {
 		return errors.New("ffmpeg is not installed")
