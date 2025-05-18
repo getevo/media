@@ -36,6 +36,8 @@ github.com/dnaeon/go-vcr v1.1.0/go.mod h1:M7tiix8f0r6mKKJ3Yq/kqU1OYf3MnfmBWVbPx/
 github.com/dnaeon/go-vcr v1.2.0/go.mod h1:R4UdLID7HZT3taECzJs4YgbbH6PIGXB6W/sc5OLb6RQ=
 github.com/fxamacker/cbor/v2 v2.8.0 h1:fFtUGXUzXPHTIUdne5+zzMPTfffl3RD5qYnkY40vtxU=
 github.com/fxamacker/cbor/v2 v2.8.0/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
+github.com/gabriel-vasile/mimetype v1.4.9 h1:5k+WDwEsD9eTLL8Tz3L0VnmVh9QxGjRmjBvAG7U/oYY=
+github.com/gabriel-vasile/mimetype v1.4.9/go.mod h1:WnSQhFKJuBlRyLiKohA/2DtIlPFAbguNaG7QCHcyGok=
 github.com/getevo/evo/v2 v2.0.0-20250507085905-7ae1a37a4236 h1:s0Ah8sjf8R4alrezDOZAiYyl2sOjeQfMGoX70aeK2W0=
 github.com/getevo/evo/v2 v2.0.0-20250507085905-7ae1a37a4236/go.mod h1:A7o5OiBF91mBLLL+UIOOg5dbmM170jopAOOG4ZgOLp4=
 github.com/getevo/json v0.0.0-20240816130540-f0ea83b195d9 h1:yPW/dYX0id8nVZ7be3Ku774zGl9hvcrimVBQp2o0poA=

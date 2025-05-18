@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/getevo/evo/v2/lib/json"
 	"image"
 	_ "image/gif"
@@ -12,7 +13,6 @@ import (
 	"io"
 	"math"
 	"mime/multipart"
-	"net/http"
 	"net/textproto"
 	"os"
 	"os/exec"
@@ -158,7 +158,7 @@ func DetectFileType(fileHeader *multipart.FileHeader) (FileInfo, error) {
 		return FileInfo{}, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	mimeType := http.DetectContentType(buffer[:n])
+	mimeType := mimetype.Detect(buffer[:n]).String()
 
 	fileType := "document" // default fallback
 	switch {

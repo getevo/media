@@ -3,6 +3,7 @@ module github.com/getevo/media
 go 1.23.9
 
 require (
+	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/getevo/evo/v2 v2.0.0-20250507085905-7ae1a37a4236
 	github.com/getevo/restify v0.0.0-20250513125431-662da833b4b2
 )
@@ -40,6 +41,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.61.0 // indirect
 	golang.org/x/crypto v0.37.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
