@@ -396,20 +396,20 @@ func MoveFile(src, dst string) error {
 // ExtractMediaMetadata extracts media metadata using ffprobe
 func ExtractMediaMetadata(media *Media) ([]MetaData, error) {
 	var metadata []MetaData
-
+	var filePath = filepath.Abs(filepath.Join(LocalUploadDir, media.Path))
 	cmd := exec.Command("ffprobe",
 		"-v", "quiet",
 		"-print_format", "json",
 		"-show_format",
 		"-show_streams",
-		filepath.Join(LocalUploadDir, media.Path),
+		filePath,
 	)
 	fmt.Println("ffprobe",
 		"-v", "quiet",
 		"-print_format", "json",
 		"-show_format",
 		"-show_streams",
-		filepath.Join(LocalUploadDir, media.Path))
+		filePath)
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
