@@ -169,7 +169,7 @@ func (c Controller) MultipartUploadHandler(request *evo.Request) any {
 		media.Type = fileType.Type
 		media.Status = PROCESSING
 		media.Path = filepath.Join(uploadID, key)
-
+		media.FileSize = fileType.FileSize
 		switch fileType.Type {
 		case "video":
 			var info, err = GetVideoInfo(file)
