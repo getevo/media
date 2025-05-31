@@ -399,7 +399,6 @@ func MoveFile(src, dst string) error {
 func ExtractMediaMetadata(media *Media) []MetaData {
 	var metadata []MetaData
 	var err error
-	evo.Dump(media)
 	switch media.Type {
 	case "video":
 		metadata, err = ExtractVideoMetadata(media)
