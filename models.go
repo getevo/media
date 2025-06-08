@@ -53,7 +53,7 @@ func (Collection) TableName() string {
 type CollectionItems struct {
 	CollectionItemsID int64  `gorm:"column:collection_items_id;primaryKey;autoIncrement" json:"collection_items_id"`
 	CollectionID      int64  `gorm:"column:collection_id;index;fk:media_collection;uniqueIndex:collection_item" json:"collection_id"`
-	MediaID           int64  `gorm:"column:media_id;index;fk:media;uniqueIndex:collection_item" validation:"unique:media_id,collection_id" json:"media_id"`
+	MediaID           int64  `gorm:"column:media_id;index;fk:media;uniqueIndex:collection_item" validation:"unique:media_id|collection_id" json:"media_id"`
 	VisualOrder       int    `gorm:"column:visual_order" json:"visual_order"`
 	Media             *Media `gorm:"foreignKey:MediaID;references:MediaID" json:"media,omitempty"`
 	restify.API
